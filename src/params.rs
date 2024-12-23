@@ -104,3 +104,33 @@ impl GetContractParams {
     }
 }
 
+#[derive(Debug, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetTransactionByBlockNumParams {
+    num: u64,
+}
+
+impl GetTransactionByBlockNumParams {
+    pub fn new(num: u64) -> GetTransactionByBlockNumParams {
+        GetTransactionByBlockNumParams { num }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct GetContractEventsParams {
+    pub contract_address: String,
+    pub event_name: String,
+    pub from_block: Option<u64>,
+    pub to_block: Option<u64>,
+    pub limit: Option<u32>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TriggerConstantContractParams {
+    pub owner_address: String,
+    pub contract_address: String,
+    pub function_selector: String,
+    pub parameter: String,
+    pub visible: bool,
+}

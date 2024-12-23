@@ -11,6 +11,7 @@ pub mod transaction;
 pub mod transaction_info;
 pub mod tron_contract;
 pub mod witness_list;
+pub mod event;
 
 pub use account::Account;
 pub use account_net::AccountNet;
@@ -25,3 +26,7 @@ pub use transaction::Transaction;
 pub use transaction_info::TransactionInfo;
 pub use tron_contract::Contract;
 pub use witness_list::WitnessList;
+pub use event::EventResponse;
+pub use event::TransferEventResponse;
+pub use event::TransferEvent;
+// pub use error::Error as ResponseError;

@@ -115,9 +115,9 @@ async fn main() {
         matches.value_of("api_url"),
         matches.value_of("network").unwrap(),
     ) {
-        (None, "main") => Client::for_main(),
-        (None, "shasta") => Client::for_shasta(),
-        (Some(api_url), _) => Client::new(api_url.to_string()),
+        (None, "main") => Client::for_main(None),
+        (None, "shasta") => Client::for_shasta(None),
+        (Some(api_url), _) => Client::new(api_url.to_string(), None),
         (_, _) => unimplemented!(),
     };
 

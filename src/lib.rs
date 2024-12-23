@@ -1,8 +1,8 @@
 // ...
 //
 pub mod client;
-mod error;
-mod params;
+pub mod error;
+pub mod params;
 pub mod response;
 
 pub use client::Address;

@@ -2,19 +2,19 @@
 // use lazy_static::lazy_static;
 // use tokio::sync::{Mutex, MutexGuard};
 
-use tron_api_client::{Address, Client, TxId};
-
+use tron_api_client::{Address, Client, TxId, client::Network};
+use log::info;
 // mod data;
 
 // use data::*;
 
 fn get_client() -> Client {
-    let client = Client::for_shasta();
+    let client = Client::for_shasta(None);
     client
 }
 
 fn get_client_main() -> Client {
-    let client = Client::for_main();
+    let client = Client::for_main(None);
     client
 }
 
@@ -227,3 +227,100 @@ async fn get_asset_issue_list() {
         .await
         .expect("Error fetching asset issue list");
 }
+
+#[tokio::test]
+async fn test_get_contract_transfer_events() {
+    env_logger::init();
+    let client = Client::for_main(None);
+    
+    // USDT contract address on mainnet
+    let contract = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+    
+    // Test with small limit (single page)
+    let events = client.get_contract_transfer_events(
+        contract,
+        None,
+        Some(1621490043000),
+        Some(1621490093000),  
+        Some(20)              // limit
+    ).await.unwrap();
+    
+    assert!(!events.is_empty());
+    info!("events: {:?}", events);
+    info!("events: {:?}", events.len());
+    assert!(events.len() == 20);
+    
+    // Verify event fields
+    let event = &events[0];
+    assert!(!event.transaction_id.is_empty());
+    assert!(event.block_number > 0);
+    assert!(event.block_timestamp > 0);
+    assert_eq!(event.contract_address.to_lowercase(), contract.to_lowercase());
+    assert_eq!(event.event_name, "Transfer");
+    
+    // Test pagination (multi-page)
+    let events = client.get_contract_transfer_events(
+        contract,
+        None,
+        Some(1621490043000),
+        Some(1621490093000),  
+        Some(200)             // limit > 200 to trigger pagination
+    ).await.unwrap();
+    
+    info!("events: {}", events.len());
+    assert!(!events.is_empty());
+    assert!(events.len() >= 200); // Should have fetched more than one page
+
+    // Test with small limit (single page)
+    let events = client.get_contract_transfer_events(
+        contract,
+        Some(67960725),
+        None,
+        None,
+        Some(200)              // limit
+    ).await.unwrap();
+
+    info!("events: {}", events.len());
+    assert!(!events.is_empty());
+    assert!(events.len() <= 200);
+}
+
+#[tokio::test]
+async fn test_get_contract_transfer_events_counts() {
+    env_logger::init();
+    let client = get_client_main();
+
+    for block_number in 67963911..67963912 {
+        let events = client.get_contract_transfer_events(
+            "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+            Some(block_number),
+            None,
+            None,
+            None
+        ).await.unwrap();
+        info!("block_number: {}, events: {}", block_number, events.len());
+
+        for event in events {
+            info!("event: {:?}, tx: {}", event.result, event.transaction_id);
+        }
+    }
+}
+
+#[tokio::test]
+async fn test_trigger_constant_contract() {
+    let client = get_client_main();
+    
+    // USDT contract
+    let contract = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+    
+    // Call balanceOf function
+    let result = client.trigger_constant_contract(
+        contract,
+        "balanceOf(address)", 
+        "000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c",
+        None
+    ).await.unwrap();
+    
+    assert!(!result.is_empty());
+}
+
