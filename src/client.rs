@@ -2,7 +2,7 @@ use crate::error::{Error, Result};
 use crate::params::*;
 use crate::response::{
     Account, AccountNet, AssetIssueList, Block, BlockList, ChainParameters, Contract, NodeInfo,
-    NodeList, Transaction, TransactionInfo, WitnessList, TransferEventResponse, EventResponse, Error as ResponseError, TransferEvent
+    NodeList, Transaction, TransactionInfo, WitnessList, TransferEventResponse, TransferEvent, ConstantContractResponse, EstimateEnergyResponse, AccountResource, CreateTransactionResponse, BroadcastHexResponse
 };
 use reqwest::{Client as HttpClient, Method, RequestBuilder, Response};
 use serde::{de::DeserializeOwned, Serialize};
@@ -178,6 +178,12 @@ impl Client {
         self.post("/wallet/getnowblock", EmptyBody::default()).await
     }
 
+    // Get the latest block from the solidity node, 
+    // which is the latest confirmed block
+    pub async fn get_now_block_solidity(&self) -> Result<Block> {
+        self.post("/walletsolidity/getnowblock", EmptyBody::default()).await
+    }
+
     // num is the number of blocks to query (not the block height)
     pub async fn get_block_by_latest_num(&self, num: u64) -> Result<BlockList> {
         self.post("/wallet/getblockbylatestnum", GetBlockByNumParams::new(num))
@@ -314,7 +320,7 @@ impl Client {
         contract_address: &str,
         function_selector: &str,
         parameter: &str,
-    ) -> Result<String> {
+    ) -> Result<ConstantContractResponse> {
         let params = TriggerConstantContractParams {
             owner_address: owner_address.to_string(),
             contract_address: contract_address.to_string(),
@@ -322,8 +328,57 @@ impl Client {
             parameter: parameter.to_string(),
             visible: true,
         };
-
+        // debug!("params: {}", serde_json::to_string(&params).unwrap());
         let response = self.post("/wallet/triggerconstantcontract", params).await?;
         Ok(response)
+    }
+
+    pub async fn estimate_energy(
+        &self,
+        owner_address: &str,
+        contract_address: &str,
+        function_selector: &str,
+        parameter: &str,
+    ) -> Result<EstimateEnergyResponse> {
+        let params = EstimateEnergyParams::new(
+            owner_address.to_string(),
+            contract_address.to_string(),
+            function_selector.to_string(),
+            parameter.to_string(),
+        );
+        // This API is closed by default. To open this interface, the two configuration items vm.estimateEnergy and vm.supportConstant must be enabled in the node configuration file at the same time. 
+        self.post("/wallet/estimateenergy", params).await
+    }
+
+    pub async fn get_account_resource(&self, address: &str) -> Result<AccountResource> {
+        let params = GetAccountParams::new_visible(address.to_string());
+        self.post("/wallet/getaccountresource", params).await
+    }
+
+    // Creates a TRX transfer transaction
+    pub async fn create_transaction(
+        &self,
+        owner_address: &str,
+        to_address: &str,
+        amount: i64,
+    ) -> Result<Transaction> {
+        let params = CreateTransactionParams {
+            owner_address: owner_address.to_string(),
+            to_address: to_address.to_string(),
+            amount,
+            visible: true,
+        };
+        self.post("/wallet/createtransaction", params).await
+    }
+
+    /// Broadcasts a signed transaction hex string to the TRON network
+    /// 
+    /// Parameters:
+    /// - transaction: The hex string of the signed transaction
+    /// 
+    /// Returns a BroadcastHexResponse containing the result and transaction details
+    pub async fn broadcast_hex(&self, transaction: String) -> Result<BroadcastHexResponse> {
+        let params = BroadcastHexParams{transaction};
+        self.post("/wallet/broadcasthex", params).await
     }
 }

@@ -308,19 +308,141 @@ async fn test_get_contract_transfer_events_counts() {
 
 #[tokio::test]
 async fn test_trigger_constant_contract() {
+    env_logger::init();
     let client = get_client_main();
     
-    // USDT contract
-    let contract = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+    let owner_address = "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G";  // Example address
+    let contract_address = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";  // USDT contract
+    let function_selector = "transfer(address,uint256)";
+    let parameter = "000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c0000000000000000000000000000000000000000000000000000000000000001";
     
     // Call balanceOf function
     let result = client.trigger_constant_contract(
-        contract,
-        "balanceOf(address)", 
-        "000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c",
-        None
+        owner_address,
+        contract_address,
+        function_selector,
+        parameter
     ).await.unwrap();
+    info!("result: {:?}", result);
+    assert!(result.result.result);
+}
+
+#[tokio::test]
+async fn test_estimate_energy() {
+    env_logger::init();
+    let client = get_client_main();
     
-    assert!(!result.is_empty());
+    // Test contract parameters
+    let owner_address = "TJRabPrwbZy45sbavfcjinPJC18kjpRTv8";  // Example address
+    let contract_address = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";  // USDT contract
+    let function_selector = "transfer(address,uint256)";
+    
+    // Example parameter for transfer function (you might need to adjust this based on your needs)
+    let parameter = "000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c0000000000000000000000000000000000000000000000000000000000001000";
+
+    let result = client
+        .estimate_energy(
+            owner_address,
+            contract_address,
+            function_selector,
+            parameter,
+        )
+        .await;
+
+    match result {
+        Ok(response) => {
+            // Check if we got a valid response
+            assert!(response.result.result || response.result.code == "CONTRACT_VALIDATE_ERROR", 
+                "Expected either success or CONTRACT_VALIDATE_ERROR");
+            
+            // If successful, energy_required should be greater than 0
+            if response.result.result {
+                assert!(response.energy_required > 0, 
+                    "Energy required should be greater than 0");
+            }
+            
+
+            info!("Energy estimation result: {:?}", response);
+        },
+        Err(e) => {
+            // The API might return an error if the node doesn't have vm.estimateEnergy enabled
+            info!("Error estimating energy (this might be expected if estimateEnergy is disabled): {:?}", e);
+            
+        }
+    }
+}
+
+#[tokio::test]
+async fn test_create_transaction() {
+    env_logger::init();
+    let client = get_client_main();
+    
+    let owner_address = "TZ4UXDV5ZhNW7fb2AMSbgfAEZ7hWsnYS2g";
+    let to_address = "TPswDDCAWhJAZGdHPidFg5nEf8TkNToDX1";
+    let amount = 1000;
+
+    let result = client
+        .create_transaction(owner_address, to_address, amount)
+        .await
+        .unwrap();
+
+    info!("Create transaction result: {}", serde_json::to_string(&result).unwrap());
+    
+    // Verify the response structure
+    assert!(result.visible.unwrap());
+    assert!(!result.tx_id.is_empty());
+    assert!(!result.raw_data_hex.is_empty());
+    assert_eq!(result.raw_data.contract.len(), 1);
+    
+    let contract = &result.raw_data.contract[0];
+    assert_eq!(contract.type_field, "TransferContract");
+    assert_eq!(contract.parameter.value.amount, Some(amount));
+    assert_eq!(contract.parameter.value.owner_address, owner_address);
+    assert_eq!(contract.parameter.value.to_address, Some(to_address.to_string()));
+}
+
+#[tokio::test]
+async fn test_broadcast_hex() {
+    env_logger::init();
+    let client = get_client_main();
+    
+    // First create a transaction
+    let owner_address = "TZ4UXDV5ZhNW7fb2AMSbgfAEZ7hWsnYS2g";
+    let to_address = "TPswDDCAWhJAZGdHPidFg5nEf8TkNToDX1";
+    let amount = 1000;
+
+    let tx = client
+        .create_transaction(owner_address, to_address, amount)
+        .await
+        .unwrap();
+
+    // Get the raw transaction hex
+    let tx_hex = tx.raw_data_hex;
+    
+    // Broadcast the transaction hex
+    // Note: This will fail without proper signing, but tests the API call structure
+    let result = client.broadcast_hex(tx_hex).await;
+    
+    match result {
+        Ok(response) => {
+            info!("Broadcast result: {}", serde_json::to_string(&response).unwrap());
+            
+            // Should have a result field
+            assert!(!response.result);  // Will be false since transaction is not signed
+            
+            // Should have error details
+            assert!(response.code.is_some());
+            assert!(response.message.is_some());
+            
+            // Transaction might not be present in error case
+            if let Some(tx) = response.transaction {
+                assert!(!tx.tx_id.is_empty());
+            }
+        },
+        Err(e) => {
+            // API level errors
+            info!("API error: {:?}", e);
+        }
+    }
 }
 

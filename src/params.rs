@@ -60,6 +60,13 @@ impl GetAccountParams {
 
         GetAccountParams { address, visible }
     }
+
+    pub fn new_visible(address: String) -> GetAccountParams {
+        GetAccountParams {
+            address,
+            visible: true,
+        }
+    }
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -126,7 +133,6 @@ pub struct GetContractEventsParams {
 }
 
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct TriggerConstantContractParams {
     pub owner_address: String,
     pub contract_address: String,
@@ -134,3 +140,54 @@ pub struct TriggerConstantContractParams {
     pub parameter: String,
     pub visible: bool,
 }
+
+#[derive(Debug, Serialize)]
+pub struct EstimateEnergyParams {
+    pub owner_address: String,
+    pub contract_address: String,
+    pub function_selector: String,
+    pub parameter: String,
+    pub visible: bool,
+}
+
+impl EstimateEnergyParams {
+    pub fn new(
+        owner_address: String,
+        contract_address: String,
+        function_selector: String,
+        parameter: String,
+    ) -> Self {
+        Self {
+            owner_address,
+            contract_address,
+            function_selector,
+            parameter,
+            visible: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct CreateTransactionParams {
+    pub owner_address: String,
+    pub to_address: String,
+    pub amount: i64,
+    pub visible: bool,
+}
+
+impl CreateTransactionParams {
+    pub fn new(owner_address: String, to_address: String, amount: i64) -> Self {
+        Self {
+            owner_address,
+            to_address,
+            amount,
+            visible: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct BroadcastHexParams {
+    pub transaction: String
+}
+

@@ -12,6 +12,9 @@ pub mod transaction_info;
 pub mod tron_contract;
 pub mod witness_list;
 pub mod event;
+pub mod constant_contract;
+pub mod account_resource;
+
 
 pub use account::Account;
 pub use account_net::AccountNet;
@@ -29,4 +32,10 @@ pub use witness_list::WitnessList;
 pub use event::EventResponse;
 pub use event::TransferEventResponse;
 pub use event::TransferEvent;
+pub use constant_contract::ConstantContractResponse;
+pub use constant_contract::EstimateEnergyResponse;
+pub use account_resource::AccountResource;
+pub use transaction::CreateTransactionResponse;
+pub use transaction::BroadcastHexResponse;
 // pub use error::Error as ResponseError;
+

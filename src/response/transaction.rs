@@ -1,8 +1,9 @@
 #[derive(Default, Debug, Clone, PartialEq, serde_derive::Serialize, serde_derive::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {
-    pub ret: Vec<Ret>,
-    pub signature: Vec<String>,
+    pub visible: Option<bool>,
+    pub ret: Option<Vec<Ret>>,
+    pub signature: Option<Vec<String>>,
     #[serde(rename = "txID")]
     pub tx_id: String,
     #[serde(rename = "raw_data")]
@@ -64,4 +65,25 @@ pub struct Value {
     pub asset_name: Option<String>,
     #[serde(rename = "to_address")]
     pub to_address: Option<String>,
+}
+
+
+#[derive(Default, Debug, Clone, PartialEq, serde_derive::Serialize, serde_derive::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateTransactionResponse {
+    pub visible: bool,
+    #[serde(rename = "txID")]
+    pub tx_id: String,
+    pub raw_data: RawData,
+    #[serde(rename = "raw_data_hex")]
+    pub raw_data_hex: String,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, serde_derive::Serialize, serde_derive::Deserialize)]
+pub struct BroadcastHexResponse {
+    pub result: bool,
+    pub txid: String,
+    pub code: Option<String>,
+    pub message: Option<String>,
+    pub transaction: Option<Transaction>,
 }
