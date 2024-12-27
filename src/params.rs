@@ -191,3 +191,115 @@ pub struct BroadcastHexParams {
     pub transaction: String
 }
 
+#[derive(Serialize)]
+pub struct FreezeBalanceV2Params {
+    owner_address: String,
+    resource: String,
+    frozen_balance: i64,
+    visible: bool,
+}
+
+impl FreezeBalanceV2Params {
+    pub fn new(owner_address: String, resource: String, frozen_balance: i64) -> Self {
+        Self {
+            owner_address,
+            resource,
+            frozen_balance,
+            visible: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct UnfreezeBalanceV2Params {
+    pub owner_address: String,
+    pub resource: String,
+    pub unfreeze_balance: i64,
+    pub visible: bool,
+}
+
+impl UnfreezeBalanceV2Params {
+    pub fn new(owner_address: String, resource: String, unfreeze_balance: i64) -> Self {
+        Self {
+            owner_address,
+            resource,
+            unfreeze_balance,
+            visible: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct DelegateResourceParams {
+    pub owner_address: String,
+    pub receiver_address: String,
+    pub resource: String,
+    pub balance: i64,
+    pub lock: bool,
+    pub lock_period: i64,
+    pub visible: bool,
+}
+
+impl DelegateResourceParams {
+    pub fn new(
+        owner_address: String,
+        receiver_address: String,
+        resource: String,
+        balance: i64,
+        lock: bool,
+        lock_period: i64,
+    ) -> Self {
+        Self {
+            owner_address,
+            receiver_address,
+            resource,
+            balance,
+            lock,
+            lock_period,
+            visible: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct UnDelegateResourceParams {
+    pub owner_address: String,
+    pub receiver_address: String,
+    pub resource: String,
+    pub balance: i64,
+    pub visible: bool,
+}
+
+impl UnDelegateResourceParams {
+    pub fn new(
+        owner_address: String,
+        receiver_address: String,
+        resource: String,
+        balance: i64,
+    ) -> Self {
+        Self {
+            owner_address,
+            receiver_address,
+            resource,
+            balance,
+            visible: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct ActivateAccountParams {
+    pub owner_address: String,
+    pub account_address: String,
+    pub visible: bool,
+}
+
+impl ActivateAccountParams {
+    pub fn new(owner_address: String, account_address: String) -> Self {
+        Self {
+            owner_address,
+            account_address,
+            visible: true,
+        }
+    }
+}

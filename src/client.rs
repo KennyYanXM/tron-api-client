@@ -381,4 +381,126 @@ impl Client {
         let params = BroadcastHexParams{transaction};
         self.post("/wallet/broadcasthex", params).await
     }
+
+    /// Freezes TRX balance to obtain resources (bandwidth or energy) and TRON Power in Stake 2.0
+    /// 
+    /// Parameters:
+    /// - owner_address: Account address in hex format
+    /// - resource: Resource type ("BANDWIDTH" or "ENERGY")
+    /// - frozen_balance: Amount to freeze in SUN (1 TRX = 1,000,000 SUN)
+    /// 
+    /// Returns a Transaction object containing the unsigned transaction
+    pub async fn freeze_balance_v2(
+        &self,
+        owner_address: &str,
+        resource: &str,
+        frozen_balance: i64,
+    ) -> Result<Transaction> {
+        let params = FreezeBalanceV2Params::new(
+            owner_address.to_string(),
+            resource.to_string(),
+            frozen_balance,
+        );
+        self.post("/wallet/freezebalancev2", params).await
+    }
+
+    /// Unstake TRX from Stake 2.0 system
+    /// 
+    /// Parameters:
+    /// - owner_address: Account address in hex format
+    /// - resource: Resource type ("BANDWIDTH" or "ENERGY")
+    /// - unfreeze_balance: Amount to unfreeze in SUN (1 TRX = 1,000,000 SUN)
+    /// 
+    /// Returns a Transaction object containing the unsigned transaction
+    /// Note: After unstaking, funds will be locked for 14 days before they can be withdrawn
+    pub async fn unfreeze_balance_v2(
+        &self,
+        owner_address: &str,
+        resource: &str,
+        unfreeze_balance: i64,
+    ) -> Result<Transaction> {
+        let params = UnfreezeBalanceV2Params::new(
+            owner_address.to_string(),
+            resource.to_string(),
+            unfreeze_balance,
+        );
+        self.post("/wallet/unfreezebalancev2", params).await
+    }
+
+    /// Delegate bandwidth or energy resources to other accounts in Stake2.0
+    /// 
+    /// Parameters:
+    /// - owner_address: Account address in hex format
+    /// - receiver_address: Resource receiver address in hex format
+    /// - resource: Resource type ("BANDWIDTH" or "ENERGY")
+    /// - balance: Amount to delegate in SUN (1 TRX = 1,000,000 SUN)
+    /// - lock: Whether to lock the resource delegation
+    /// - lock_period: Lock period in blocks (1 block = 3s). Only valid when lock is true
+    ///               For 1 day lock period, use 28800 blocks
+    /// 
+    /// Returns a Transaction object containing the unsigned transaction
+    pub async fn delegate_resource(
+        &self,
+        owner_address: &str,
+        receiver_address: &str,
+        resource: &str,
+        balance: i64,
+        lock: bool,
+        lock_period: i64,
+    ) -> Result<Transaction> {
+        let params = DelegateResourceParams::new(
+            owner_address.to_string(),
+            receiver_address.to_string(),
+            resource.to_string(),
+            balance,
+            lock,
+            lock_period,
+        );
+        self.post("/wallet/delegateresource", params).await
+    }
+
+    /// Cancel the delegation of bandwidth or energy resources to other accounts in Stake2.0
+    /// 
+    /// Parameters:
+    /// - owner_address: Account address in hex format
+    /// - receiver_address: Resource receiver address in hex format
+    /// - resource: Resource type ("BANDWIDTH" or "ENERGY")
+    /// - balance: Amount of resource shares to undelegate in SUN (1 TRX = 1,000,000 SUN)
+    /// 
+    /// Returns a Transaction object containing the unsigned transaction
+    pub async fn undelegate_resource(
+        &self,
+        owner_address: &str,
+        receiver_address: &str,
+        resource: &str,
+        balance: i64,
+    ) -> Result<Transaction> {
+        let params = UnDelegateResourceParams::new(
+            owner_address.to_string(),
+            receiver_address.to_string(),
+            resource.to_string(),
+            balance,
+        );
+        self.post("/wallet/undelegateresource", params).await
+    }
+
+    /// Activate a new account using an already activated account
+    /// 
+    /// Parameters:
+    /// - owner_address: Transaction initiator address (must be already activated)
+    /// - account_address: Account address to be activated
+    /// 
+    /// Returns a Transaction object containing the unsigned transaction
+    /// Note: The transaction must be signed and broadcast within 1 minute
+    pub async fn activate_account(
+        &self,
+        owner_address: &str,
+        account_address: &str,
+    ) -> Result<Transaction> {
+        let params = ActivateAccountParams::new(
+            owner_address.to_string(),
+            account_address.to_string(),
+        );
+        self.post("/wallet/createaccount", params).await
+    }
 }

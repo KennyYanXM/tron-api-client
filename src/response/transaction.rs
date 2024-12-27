@@ -65,6 +65,19 @@ pub struct Value {
     pub asset_name: Option<String>,
     #[serde(rename = "to_address")]
     pub to_address: Option<String>,
+    pub resource: Option<String>,
+    #[serde(rename = "frozen_balance")]
+    pub frozen_balance: Option<i64>,
+    #[serde(rename = "unfreeze_balance")]
+    pub unfreeze_balance: Option<i64>,
+    #[serde(rename = "receiver_address")]
+    pub receiver_address: Option<String>,
+    #[serde(rename = "lock_period")]
+    pub lock_period: Option<i64>,
+    pub lock: Option<bool>,
+    pub balance: Option<i64>,
+    #[serde(rename = "account_address")]
+    pub account_address: Option<String>,
 }
 
 
@@ -85,5 +98,5 @@ pub struct BroadcastHexResponse {
     pub txid: String,
     pub code: Option<String>,
     pub message: Option<String>,
-    pub transaction: Option<Transaction>,
+    pub transaction: Option<String>,
 }
